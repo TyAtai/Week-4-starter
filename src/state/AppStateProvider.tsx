@@ -1,19 +1,25 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
+  loadHikedTrailIds,
   loadPreferences,
   loadSavedTrailIds,
   loadSession,
+  persistHikedTrailIds,
   persistPreferences,
   persistSavedTrailIds,
   persistSession,
 } from '@/lib/storage';
 import { DEFAULT_PREFERENCES, type Preferences, type Units } from '@/types/preferences';
+import { toggleId } from '@/utils/idSet';
 
 interface AppStateValue {
   isHydrated: boolean;
   savedIds: Set<string>;
   isSaved: (trailId: string) => boolean;
   toggleSaved: (trailId: string) => void;
+  hikedIds: Set<string>;
+  isHiked: (trailId: string) => boolean;
+  toggleHiked: (trailId: string) => void;
   preferences: Preferences;
   setUnits: (units: Units) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
@@ -27,19 +33,22 @@ const AppStateContext = createContext<AppStateValue | null>(null);
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [hikedIds, setHikedIds] = useState<Set<string>>(new Set());
   const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [ids, prefs, session] = await Promise.all([
+      const [savedTrailIds, hikedTrailIds, prefs, session] = await Promise.all([
         loadSavedTrailIds(),
+        loadHikedTrailIds(),
         loadPreferences(),
         loadSession(),
       ]);
       if (cancelled) return;
-      setSavedIds(new Set(ids));
+      setSavedIds(new Set(savedTrailIds));
+      setHikedIds(new Set(hikedTrailIds));
       setPreferences(prefs);
       setIsLoggedIn(session.isLoggedIn);
       setIsHydrated(true);
@@ -53,13 +62,18 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
 
   const toggleSaved = useCallback((trailId: string) => {
     setSavedIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(trailId)) {
-        next.delete(trailId);
-      } else {
-        next.add(trailId);
-      }
+      const next = toggleId(previous, trailId);
       persistSavedTrailIds(Array.from(next));
+      return next;
+    });
+  }, []);
+
+  const isHiked = useCallback((trailId: string) => hikedIds.has(trailId), [hikedIds]);
+
+  const toggleHiked = useCallback((trailId: string) => {
+    setHikedIds((previous) => {
+      const next = toggleId(previous, trailId);
+      persistHikedTrailIds(Array.from(next));
       return next;
     });
   }, []);
@@ -96,6 +110,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       savedIds,
       isSaved,
       toggleSaved,
+      hikedIds,
+      isHiked,
+      toggleHiked,
       preferences,
       setUnits,
       setNotificationsEnabled,
@@ -108,6 +125,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       savedIds,
       isSaved,
       toggleSaved,
+      hikedIds,
+      isHiked,
+      toggleHiked,
       preferences,
       setUnits,
       setNotificationsEnabled,
@@ -131,6 +151,11 @@ function useAppState(): AppStateValue {
 export function useSavedTrails() {
   const { savedIds, isSaved, toggleSaved, isHydrated } = useAppState();
   return { savedIds, isSaved, toggleSaved, isHydrated };
+}
+
+export function useHikedTrails() {
+  const { hikedIds, isHiked, toggleHiked, isHydrated } = useAppState();
+  return { hikedIds, isHiked, toggleHiked, isHydrated };
 }
 
 export function usePreferences() {

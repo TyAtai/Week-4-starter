@@ -12,5 +12,4 @@ export const DEFAULT_PREFERENCES: Preferences = {
 
 export interface Profile {
   name: string;
-  trailsHiked: number;
 }

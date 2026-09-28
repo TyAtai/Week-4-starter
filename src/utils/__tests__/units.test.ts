@@ -1,4 +1,11 @@
-import { formatDistance, formatDuration, formatElevation, milesToDisplay, feetToDisplay } from '@/utils/units';
+import {
+  formatDistance,
+  formatDistanceFromUser,
+  formatDuration,
+  formatElevation,
+  milesToDisplay,
+  feetToDisplay,
+} from '@/utils/units';
 
 describe('unit conversion', () => {
   it('keeps imperial values unchanged', () => {
@@ -28,5 +35,14 @@ describe('unit conversion', () => {
     expect(formatDuration(135)).toBe('2h 15m');
     expect(formatDuration(45)).toBe('45m');
     expect(formatDuration(420)).toBe('7h 0m');
+  });
+
+  it('formats distance-from-user separately from trail length, with an "away" suffix', () => {
+    expect(formatDistanceFromUser(2.34, 'imperial')).toBe('2.3 mi away');
+    expect(formatDistanceFromUser(2.34, 'metric')).toBe('3.8 km away');
+  });
+
+  it('rounds distance-from-user to whole numbers past 10 units for readability', () => {
+    expect(formatDistanceFromUser(42.6, 'imperial')).toBe('43 mi away');
   });
 });

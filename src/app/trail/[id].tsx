@@ -5,11 +5,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { StarButton } from '@/components/StarButton';
+import { HikedButton } from '@/components/HikedButton';
 import { StatRow } from '@/components/StatRow';
 import { MapPreview } from '@/components/MapPreview';
 import { EmptyState } from '@/components/EmptyState';
 import { getTrailById } from '@/data/trails';
-import { useSavedTrails, usePreferences } from '@/state/AppStateProvider';
+import { useHikedTrails, useSavedTrails, usePreferences } from '@/state/AppStateProvider';
 import { formatDistance, formatDuration, formatElevation } from '@/utils/units';
 import { openTrailheadDirections } from '@/utils/maps';
 import { colors, minTouchSize, radii, spacing, typography } from '@/theme/tokens';
@@ -20,6 +21,7 @@ export default function TrailDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const trail = getTrailById(id ?? '');
   const { isSaved, toggleSaved } = useSavedTrails();
+  const { isHiked, toggleHiked } = useHikedTrails();
   const { preferences } = usePreferences();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -38,6 +40,7 @@ export default function TrailDetailsScreen() {
   }
 
   const saved = isSaved(trail.id);
+  const hiked = isHiked(trail.id);
 
   const handleStartNavigation = async () => {
     setIsNavigating(true);
@@ -84,6 +87,10 @@ export default function TrailDetailsScreen() {
           <View style={styles.titleRow}>
             <Text style={styles.name}>{trail.name}</Text>
             <DifficultyBadge difficulty={trail.difficulty} />
+          </View>
+
+          <View style={styles.hikedRow}>
+            <HikedButton trailName={trail.name} hiked={hiked} onToggle={() => toggleHiked(trail.id)} />
           </View>
 
           <StatRow
@@ -174,6 +181,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
     gap: spacing.sm,
+  },
+  hikedRow: {
+    marginBottom: spacing.lg,
   },
   name: {
     ...typography.heading,

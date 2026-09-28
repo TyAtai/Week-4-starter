@@ -6,7 +6,6 @@ import type { Profile } from '@/types/preferences';
  */
 export const profile: Profile = {
   name: 'Jordan Rivera',
-  trailsHiked: 12,
 };
 
 export const profileAvatar = require('../../assets/profile/avatar.png');

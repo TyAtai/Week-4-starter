@@ -5,12 +5,13 @@ import { router } from 'expo-router';
 import { TrailCard } from '@/components/TrailCard';
 import { EmptyState } from '@/components/EmptyState';
 import { trails } from '@/data/trails';
-import { useSavedTrails, usePreferences } from '@/state/AppStateProvider';
+import { useHikedTrails, useSavedTrails, usePreferences } from '@/state/AppStateProvider';
 import { colors, spacing, typography } from '@/theme/tokens';
 import type { Trail } from '@/types/trail';
 
 export default function SavedScreen() {
   const { savedIds, isSaved, toggleSaved } = useSavedTrails();
+  const { isHiked } = useHikedTrails();
   const { preferences } = usePreferences();
 
   const savedTrails = useMemo(
@@ -22,6 +23,7 @@ export default function SavedScreen() {
     <TrailCard
       trail={item}
       saved={isSaved(item.id)}
+      hiked={isHiked(item.id)}
       units={preferences.units}
       onPress={() => router.push(`/trail/${item.id}`)}
       onToggleSaved={() => toggleSaved(item.id)}

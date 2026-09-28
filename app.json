@@ -13,7 +13,15 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "TrailMate uses your current location, only while the app is open, to show and sort trails by distance from you. Your location is never stored or sent anywhere.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true

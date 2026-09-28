@@ -4,12 +4,15 @@ import { router } from 'expo-router';
 import { SettingsRow } from '@/components/SettingsRow';
 import { EmptyState } from '@/components/EmptyState';
 import { profile, profileAvatar } from '@/data/profile';
-import { usePreferences, useSession } from '@/state/AppStateProvider';
+import { useHikedTrails, usePreferences, useSession } from '@/state/AppStateProvider';
+import { countHikedTrails } from '@/utils/hiked';
 import { colors, radii, spacing, typography } from '@/theme/tokens';
 
 export default function ProfileScreen() {
   const { preferences } = usePreferences();
   const { isLoggedIn, logOut, logIn } = useSession();
+  const { hikedIds } = useHikedTrails();
+  const trailsHiked = countHikedTrails(hikedIds);
 
   const handleLogOut = () => {
     Alert.alert(
@@ -47,7 +50,9 @@ export default function ProfileScreen() {
             accessibilityLabel={`${profile.name}'s profile photo`}
           />
           <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.subtitle}>{profile.trailsHiked} trails hiked</Text>
+          <Text style={styles.subtitle}>
+            {trailsHiked} {trailsHiked === 1 ? 'trail' : 'trails'} hiked
+          </Text>
         </View>
 
         <View style={styles.section}>

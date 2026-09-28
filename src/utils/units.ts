@@ -17,6 +17,19 @@ export function formatDistance(miles: number, units: Units): string {
   return `${value.toFixed(1)} ${unitLabel}`;
 }
 
+/**
+ * Formats straight-line distance *from the user to a trailhead* — distinct
+ * from `formatDistance`, which formats a trail's own length. Keeping these
+ * as separate functions (and separate on-screen labels) avoids conflating
+ * "how far you are from the trailhead" with "how long the trail is."
+ */
+export function formatDistanceFromUser(miles: number, units: Units): string {
+  const value = milesToDisplay(miles, units);
+  const unitLabel = units === 'metric' ? 'km' : 'mi';
+  const rounded = value < 10 ? value.toFixed(1) : Math.round(value).toString();
+  return `${rounded} ${unitLabel} away`;
+}
+
 export function formatElevation(feet: number, units: Units): string {
   const value = feetToDisplay(feet, units);
   const unitLabel = units === 'metric' ? 'm' : 'ft';

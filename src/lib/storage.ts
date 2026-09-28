@@ -3,14 +3,20 @@ import { DEFAULT_PREFERENCES, type Preferences, type Units } from '@/types/prefe
 
 export const STORAGE_KEYS = {
   savedTrailIds: '@trailmate/saved-trail-ids/v1',
+  hikedTrailIds: '@trailmate/hiked-trail-ids/v1',
   preferences: '@trailmate/preferences/v1',
   session: '@trailmate/session/v1',
 } as const;
 
 const VALID_UNITS: Units[] = ['imperial', 'metric'];
 
-/** Pure validator: turns arbitrary parsed JSON into a safe string[] or null. */
-export function parseSavedTrailIds(raw: unknown): string[] | null {
+/**
+ * Pure validator: turns arbitrary parsed JSON into a safe, de-duplicated
+ * string[] or null. Shared by both the saved-trail-ids and hiked-trail-ids
+ * stores, since both are namespaced lists of trail ids with identical shape
+ * and identical malformed-data handling.
+ */
+export function parseTrailIdList(raw: unknown): string[] | null {
   if (!Array.isArray(raw)) return null;
   if (!raw.every((item) => typeof item === 'string')) return null;
   return Array.from(new Set(raw));
@@ -53,11 +59,20 @@ async function writeJSON(key: string, value: unknown): Promise<boolean> {
 
 export async function loadSavedTrailIds(): Promise<string[]> {
   const raw = await readJSON(STORAGE_KEYS.savedTrailIds);
-  return parseSavedTrailIds(raw) ?? [];
+  return parseTrailIdList(raw) ?? [];
 }
 
 export async function persistSavedTrailIds(ids: string[]): Promise<boolean> {
   return writeJSON(STORAGE_KEYS.savedTrailIds, ids);
+}
+
+export async function loadHikedTrailIds(): Promise<string[]> {
+  const raw = await readJSON(STORAGE_KEYS.hikedTrailIds);
+  return parseTrailIdList(raw) ?? [];
+}
+
+export async function persistHikedTrailIds(ids: string[]): Promise<boolean> {
+  return writeJSON(STORAGE_KEYS.hikedTrailIds, ids);
 }
 
 export async function loadPreferences(): Promise<Preferences> {

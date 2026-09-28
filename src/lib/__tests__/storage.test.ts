@@ -1,29 +1,49 @@
-import { parsePreferences, parseSavedTrailIds } from '@/lib/storage';
+import { STORAGE_KEYS, parsePreferences, parseTrailIdList } from '@/lib/storage';
 import { DEFAULT_PREFERENCES } from '@/types/preferences';
 
-describe('parseSavedTrailIds', () => {
+describe('parseTrailIdList', () => {
   it('accepts a well-formed string array', () => {
-    expect(parseSavedTrailIds(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
+    expect(parseTrailIdList(['a', 'b', 'c'])).toEqual(['a', 'b', 'c']);
   });
 
   it('de-duplicates ids', () => {
-    expect(parseSavedTrailIds(['a', 'a', 'b'])).toEqual(['a', 'b']);
+    expect(parseTrailIdList(['a', 'a', 'b'])).toEqual(['a', 'b']);
   });
 
   it('rejects non-array values', () => {
-    expect(parseSavedTrailIds('not-an-array')).toBeNull();
-    expect(parseSavedTrailIds({ a: 1 })).toBeNull();
-    expect(parseSavedTrailIds(null)).toBeNull();
-    expect(parseSavedTrailIds(undefined)).toBeNull();
+    expect(parseTrailIdList('not-an-array')).toBeNull();
+    expect(parseTrailIdList({ a: 1 })).toBeNull();
+    expect(parseTrailIdList(null)).toBeNull();
+    expect(parseTrailIdList(undefined)).toBeNull();
   });
 
   it('rejects an array with non-string entries', () => {
-    expect(parseSavedTrailIds(['a', 42, 'c'])).toBeNull();
-    expect(parseSavedTrailIds([{ id: 'a' }])).toBeNull();
+    expect(parseTrailIdList(['a', 42, 'c'])).toBeNull();
+    expect(parseTrailIdList([{ id: 'a' }])).toBeNull();
   });
 
   it('accepts an empty array', () => {
-    expect(parseSavedTrailIds([])).toEqual([]);
+    expect(parseTrailIdList([])).toEqual([]);
+  });
+});
+
+describe('hiked trail ids (shares parseTrailIdList with saved trail ids)', () => {
+  it('uses its own namespaced storage key, distinct from saved trail ids', () => {
+    expect(STORAGE_KEYS.hikedTrailIds).not.toBe(STORAGE_KEYS.savedTrailIds);
+    expect(STORAGE_KEYS.hikedTrailIds).toMatch(/^@trailmate\//);
+  });
+
+  it('parses a well-formed hiked-id payload the same way as saved ids', () => {
+    expect(parseTrailIdList(['granite-peak-summit', 'cedar-ridge-loop'])).toEqual([
+      'granite-peak-summit',
+      'cedar-ridge-loop',
+    ]);
+  });
+
+  it('falls back safely on malformed hiked-id storage data', () => {
+    expect(parseTrailIdList({ corrupted: true })).toBeNull();
+    expect(parseTrailIdList([1, 2, 3])).toBeNull();
+    expect(parseTrailIdList('granite-peak-summit')).toBeNull();
   });
 });
 
